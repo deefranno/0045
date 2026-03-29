@@ -3,8 +3,16 @@ Application-wide constants and configuration.
 No runtime logic lives here — only static values.
 """
 
+from pathlib import Path
+
 APP_NAME = "Product Image Finder"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
+
+# ── Filesystem paths ──────────────────────────────────────────────────────────
+# PROJECT_ROOT is the directory that contains app.py (one level up from core/).
+PROJECT_ROOT: Path = Path(__file__).parent.parent
+DATA_DIR: Path = PROJECT_ROOT / "data"
+DB_PATH: Path = DATA_DIR / "products.db"
 
 # Main window defaults
 APP_MIN_WIDTH = 1100

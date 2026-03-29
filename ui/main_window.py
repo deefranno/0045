@@ -1,6 +1,7 @@
 """
 MainWindow – top-level application window.
 Composes the header, sidebar, stacked view area, and status bar.
+Accepts a ProductRepository so data-aware views can be populated.
 """
 
 from PySide6.QtWidgets import (
@@ -15,6 +16,7 @@ from core.config import (
     APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
     NAV_SECTIONS,
 )
+from core.repository import ProductRepository
 from ui.sidebar import Sidebar
 from ui.views.dashboard import DashboardView
 from ui.views.import_products import ImportProductsView
@@ -24,21 +26,11 @@ from ui.views.exports import ExportsView
 from ui.views.settings import SettingsView
 
 
-# Maps section name → view class (order must match NAV_SECTIONS)
-_VIEW_CLASSES = {
-    "Dashboard":       DashboardView,
-    "Import Products": ImportProductsView,
-    "Search Queue":    SearchQueueView,
-    "Review Images":   ReviewImagesView,
-    "Exports":         ExportsView,
-    "Settings":        SettingsView,
-}
-
-
 class MainWindow(QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, repo: ProductRepository) -> None:
         super().__init__()
-        self.setWindowTitle(f"{APP_NAME}")
+        self._repo = repo
+        self.setWindowTitle(APP_NAME)
         self.setMinimumSize(APP_MIN_WIDTH, APP_MIN_HEIGHT)
         self.resize(APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT)
 
@@ -48,7 +40,6 @@ class MainWindow(QMainWindow):
     # ── UI construction ───────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        # Root widget replaces the bare QMainWindow background
         root = QWidget()
         root.setObjectName("CentralWidget")
         self.setCentralWidget(root)
@@ -57,10 +48,8 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # 1 – Fixed header bar
         root_layout.addWidget(self._build_header())
 
-        # 2 – Body: sidebar + stacked content
         body = QWidget()
         body_layout = QHBoxLayout(body)
         body_layout.setContentsMargins(0, 0, 0, 0)
@@ -69,10 +58,16 @@ class MainWindow(QMainWindow):
         self._stack = QStackedWidget()
         self._stack.setObjectName("ViewContainer")
 
-        # Instantiate views in NAV_SECTIONS order so indices stay stable
-        for section in NAV_SECTIONS:
-            view_cls = _VIEW_CLASSES[section]
-            view = view_cls()
+        # Instantiate views — data-aware views receive the repository
+        view_instances: list[tuple[str, QWidget]] = [
+            ("Dashboard",       DashboardView(self._repo)),
+            ("Import Products", ImportProductsView()),
+            ("Search Queue",    SearchQueueView()),
+            ("Review Images",   ReviewImagesView()),
+            ("Exports",         ExportsView()),
+            ("Settings",        SettingsView()),
+        ]
+        for section, view in view_instances:
             self._views[section] = view
             self._stack.addWidget(view)
 
@@ -84,12 +79,11 @@ class MainWindow(QMainWindow):
 
         root_layout.addWidget(body, stretch=1)
 
-        # 3 – Status bar (QMainWindow native)
         self._status_bar = QStatusBar()
         self._status_bar.showMessage("Ready")
         self.setStatusBar(self._status_bar)
 
-        # Activate the default section
+        # Trigger initial nav + first data refresh
         self._sidebar.select_default()
 
     def _build_header(self) -> QFrame:
@@ -116,6 +110,10 @@ class MainWindow(QMainWindow):
 
     def _on_nav_changed(self, section: str) -> None:
         view = self._views.get(section)
-        if view is not None:
-            self._stack.setCurrentWidget(view)
-            self._status_bar.showMessage(f"Section: {section}")
+        if view is None:
+            return
+        self._stack.setCurrentWidget(view)
+        self._status_bar.showMessage(f"Section: {section}")
+        # Refresh data if the view supports it (duck-typed, no forced base class)
+        if hasattr(view, "refresh"):
+            view.refresh()
