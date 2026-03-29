@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         # Instantiate views — data-aware views receive the repository
         view_instances: list[tuple[str, QWidget]] = [
             ("Dashboard",       DashboardView(self._repo)),
-            ("Import Products", ImportProductsView()),
+            ("Import Products", ImportProductsView(self._repo)),
             ("Search Queue",    SearchQueueView()),
             ("Review Images",   ReviewImagesView()),
             ("Exports",         ExportsView()),

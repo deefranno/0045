@@ -67,6 +67,15 @@ class ProductRepository:
             ).fetchone()
         return row["cnt"] if row else 0
 
+    def get_all_original_names_lower(self) -> set[str]:
+        """Return a set of lowercase-stripped original_names for all products.
+        Used by the importer for fast O(1) duplicate detection."""
+        with self._db.connection() as conn:
+            rows = conn.execute(
+                "SELECT original_name FROM products"
+            ).fetchall()
+        return {row["original_name"].lower().strip() for row in rows}
+
     # ── Single-row CRUD ───────────────────────────────────────────────────
 
     def get_all(self) -> list[Product]:

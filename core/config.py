@@ -6,7 +6,7 @@ No runtime logic lives here — only static values.
 from pathlib import Path
 
 APP_NAME = "Product Image Finder"
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 
 # ── Filesystem paths ──────────────────────────────────────────────────────────
 # PROJECT_ROOT is the directory that contains app.py (one level up from core/).
