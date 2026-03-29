@@ -123,6 +123,57 @@ product_image_finder/
 
 ---
 
+## Name Cleaning
+
+The cleaning engine (`core/cleaner.py`) applies a deterministic pipeline to raw
+stock-list names.  All rules are regex-based — no AI or external services required.
+
+### Pipeline steps (in order)
+
+| Step | What it does |
+|---|---|
+| Replace separators | `_` → space |
+| Strip stock codes | `SKU001 Widget A` → `Widget A` |
+| Remove pack multipliers | `12X330ML`, `24*250ML`, `6 x 440ml` → removed |
+| Remove standalone sizes | `500ML`, `1.5KG`, `200G` → removed |
+| Remove pack counts | `6PK`, `24CT`, `12PACK` → removed |
+| Expand abbreviations | `BTL` → `Bottle`, `ORIG` → `Original`, `ASST` → `Assorted` |
+| Normalise whitespace | Collapse multiple spaces; strip ends |
+| Title Case | Applied only when the original was entirely uppercase |
+
+### Before / After examples
+
+| Original (raw stock name) | Cleaned (search query) |
+|---|---|
+| `COCA COLA 12X330ML CAN` | `Coca Cola Can` |
+| `HEINZ BAKED BEANS 4X415G TIN` | `Heinz Baked Beans Tin` |
+| `RED BULL ENERGY DRINK 24*250ML` | `Red Bull Energy Drink` |
+| `WALKERS CRISPS READY SALTED 6PK` | `Walkers Crisps Ready Salted` |
+| `NESCAFE GOLD BLEND 200G JAR` | `Nescafe Gold Blend Jar` |
+| `OWN_BRAND_TOMATO_SOUP_400G` | `Own Brand Tomato Soup` |
+| `SKU0042 FAIRY LIQUID 500ML ORIG` | `Fairy Liquid Original` |
+| `Fairy Liquid 500ml` | `Fairy Liquid` *(mixed case preserved)* |
+| `CADBURY ASSORT MINI BTLS 200G` | `Cadbury Assorted Mini Bottles` |
+| `PROTEIN BAR PREM BULK 24CT` | `Protein Bar Premium Bulk` |
+
+Mixed-case names (already formatted) are left untouched — Title Case is only
+applied when every alphabetic character in the original is uppercase.
+
+### Extending the abbreviation map
+
+Open `core/cleaner.py` and add entries to `ABBREVIATION_MAP`.  Keys are matched
+as whole words (case-insensitive).  The pattern is rebuilt from the map at
+import time — no regex editing required.
+
+```python
+# core/cleaner.py  →  ABBREVIATION_MAP
+"CHOC":  "Chocolate",
+"VAN":   "Vanilla",
+"STRAW": "Strawberry",
+```
+
+---
+
 ## Phases
 
 | Phase | Description                                    | Status      |
@@ -130,7 +181,7 @@ product_image_finder/
 | 1     | Project scaffold + navigation shell            | ✓ Complete  |
 | 2     | SQLite data model + Dashboard counts           | ✓ Complete  |
 | 3     | Product import from TXT / CSV / paste          | ✓ Complete  |
-| 4     | Name cleaning + search query generation        | Upcoming    |
+| 4     | Name cleaning engine + Search Queue UI         | ✓ Complete  |
 | 5     | Playwright image search + candidate storage    | Upcoming    |
 | 6     | Image review UI (approve / reject)             | Upcoming    |
 | 7     | Image download + export (CSV / JSON)           | Upcoming    |

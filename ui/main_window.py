@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         view_instances: list[tuple[str, QWidget]] = [
             ("Dashboard",       DashboardView(self._repo)),
             ("Import Products", ImportProductsView(self._repo)),
-            ("Search Queue",    SearchQueueView()),
+            ("Search Queue",    SearchQueueView(self._repo)),
             ("Review Images",   ReviewImagesView()),
             ("Exports",         ExportsView()),
             ("Settings",        SettingsView()),

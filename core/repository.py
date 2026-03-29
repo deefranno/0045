@@ -76,6 +76,56 @@ class ProductRepository:
             ).fetchall()
         return {row["original_name"].lower().strip() for row in rows}
 
+    def get_products_by_statuses(self, statuses: list[str]) -> list[Product]:
+        """Return all products whose status is in the given list,
+        ordered by creation time (oldest first)."""
+        if not statuses:
+            return []
+        placeholders = ", ".join("?" * len(statuses))
+        with self._db.connection() as conn:
+            rows = conn.execute(
+                f"SELECT * FROM products WHERE status IN ({placeholders})"
+                " ORDER BY created_at ASC",
+                statuses,
+            ).fetchall()
+        return [_row_to_product(r) for r in rows]
+
+    def update_cleaned_name(self, product_id: int, cleaned_name: str) -> None:
+        """Persist a cleaned name and advance status from 'new' → 'cleaned'.
+        If the product is already past 'new' (e.g. 'searched'), the status
+        is left untouched — only cleaned_name and updated_at are written."""
+        with self._db.connection() as conn:
+            conn.execute(
+                """
+                UPDATE products SET
+                    cleaned_name = ?,
+                    status       = CASE WHEN status = 'new' THEN 'cleaned' ELSE status END,
+                    updated_at   = ?
+                WHERE id = ?
+                """,
+                (cleaned_name, _now(), product_id),
+            )
+        logger.debug("update_cleaned_name id=%s → %r", product_id, cleaned_name)
+
+    def batch_update_cleaned_names(self, updates: list[tuple[int, str]]) -> int:
+        """Update cleaned_name for many products in a single transaction.
+        updates: list of (product_id, cleaned_name).
+        Returns the number of rows updated."""
+        now = _now()
+        with self._db.connection() as conn:
+            conn.executemany(
+                """
+                UPDATE products SET
+                    cleaned_name = ?,
+                    status       = CASE WHEN status = 'new' THEN 'cleaned' ELSE status END,
+                    updated_at   = ?
+                WHERE id = ?
+                """,
+                [(cleaned_name, now, product_id) for product_id, cleaned_name in updates],
+            )
+        logger.debug("batch_update_cleaned_names: %d rows", len(updates))
+        return len(updates)
+
     # ── Single-row CRUD ───────────────────────────────────────────────────
 
     def get_all(self) -> list[Product]:

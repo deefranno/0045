@@ -386,4 +386,22 @@ QPushButton#SecondaryButton:hover {
     background-color: #EEF4FB;
     border-color: #2B5278;
 }
+
+/* ── Search Queue / action toolbar ───────────────────────────────────────── */
+QFrame#ActionBar {
+    background-color: #FFFFFF;
+    border: 1px solid #DDE1E7;
+    border-radius: 6px;
+}
+
+QLabel#StatsLabel {
+    font-size: 12px;
+    color: #607080;
+}
+
+QLabel#TableHint {
+    font-size: 12px;
+    color: #9AAABB;
+    font-style: italic;
+}
 """
