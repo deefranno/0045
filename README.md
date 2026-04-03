@@ -3,8 +3,8 @@
 Product Image Matcher Pro is a desktop application designed for supermarket inventory management. It automates the process of finding, matching, and ranking product images from multiple online sources based on messy, abbreviated product names.
 
 ## System Requirements
-- Debian 12 (or compatible Linux distribution)
-- Python 3.11+
+- Debian 12 / Debian Trixie (or compatible Linux distribution)
+- Python 3.11+ (Python 3.12/3.13 supported)
 - Pip and Python Venv
 - Playwright Chromium dependencies
 
@@ -12,7 +12,7 @@ Product Image Matcher Pro is a desktop application designed for supermarket inve
 From a clean Debian terminal, run:
 ```bash
 sudo apt update
-sudo apt install python3.11 python3.11-venv python3-pip
+sudo apt install python3 python3-venv python3-pip
 ./run.sh
 ```
 *Note: `run.sh` will automatically install Python dependencies and Playwright browsers.*
