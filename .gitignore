@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+logs/*.log
+venv/
+.env
+.DS_Store
+*.csv
+!sample_products.csv

@@ -1,0 +1,14 @@
+[
+  {"tier": 1, "name": "Fontana Supermarket", "domain": "fontanasupermarket.com", "enabled": true, "search_url_template": "https://fontanasupermarket.com/search?q={query}", "type": "scrape"},
+  {"tier": 1, "name": "Lee's Fifth Avenue", "domain": "leesfifthavenue.com", "enabled": true, "search_url_template": "https://leesfifthavenue.com/search?q={query}", "type": "scrape"},
+  {"tier": 1, "name": "MegaMart", "domain": "megamart.com.jm", "enabled": true, "search_url_template": "https://megamart.com.jm/search?q={query}", "type": "scrape"},
+  {"tier": 2, "name": "Grace Foods", "domain": "gracefoods.com", "enabled": true, "search_url_template": "https://gracefoods.com/search?q={query}", "type": "scrape"},
+  {"tier": 2, "name": "Lasco Jamaica", "domain": "lascojamaica.com", "enabled": true, "search_url_template": "https://lascojamaica.com/search?q={query}", "type": "scrape"},
+  {"tier": 3, "name": "Massy Stores", "domain": "massystores.com", "enabled": true, "search_url_template": "https://massystores.com/search?q={query}", "type": "scrape"},
+  {"tier": 3, "name": "PriceSmart", "domain": "pricesmart.com", "enabled": true, "search_url_template": "https://pricesmart.com/search?q={query}", "type": "scrape"},
+  {"tier": 4, "name": "Amazon", "domain": "amazon.com", "enabled": true, "search_url_template": "https://www.amazon.com/s?k={query}", "type": "scrape"},
+  {"tier": 4, "name": "Walmart", "domain": "walmart.com", "enabled": true, "search_url_template": "https://www.walmart.com/search?q={query}", "type": "scrape"},
+  {"tier": 5, "name": "Google Search", "domain": "google.com", "enabled": true, "search_url_template": "https://www.google.com/search?q={query}", "type": "scrape"},
+  {"tier": 5, "name": "Bing Search", "domain": "bing.com", "enabled": true, "search_url_template": "https://www.bing.com/images/search?q={query}", "type": "scrape"},
+  {"tier": 6, "name": "DuckDuckGo", "domain": "duckduckgo.com", "enabled": true, "search_url_template": "https://duckduckgo.com/?q={query}&iax=images&ia=images", "type": "scrape"}
+]
