@@ -1,0 +1,7 @@
+{
+    "app_name": "Product Image Matcher Pro",
+    "version": "1.0.0",
+    "domain_whitelist": [],
+    "domain_blacklist": [],
+    "trusted_domains": []
+}
