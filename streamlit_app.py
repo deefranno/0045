@@ -1,7 +1,6 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -43,9 +42,11 @@ st.write(df)
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
-         "You will now notice our dataframe is in the editing mode and try to "
-         "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
+         "You will now notice our dataframe is in the editing mode. Try to "
+         "select an **Issue Category** and check **Has Issue?** if you find any problems. "
+         "Finally, check **Reviewed?** when you're done with a row 👇")
 
+df["Reviewed"] = [True, True, True, False]
 df["Issue"] = [True, True, True, False]
 df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
@@ -60,16 +61,21 @@ new_df = st.data_editor(
             width = "medium",
             disabled=True
         ),
-        "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
+        "Reviewed":st.column_config.CheckboxColumn(
+            "Reviewed?",
+            help = "Check this when you have finished evaluating this row",
             default = False
         ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
+        "Issue":st.column_config.CheckboxColumn(
+            "Has Issue?",
+            help = "Check if this response has a quality issue",
+            default = False
+        ),
+        "Category":st.column_config.SelectboxColumn(
+            "Issue Category",
+            help = "Select the category of the issue identified",
+            options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
+            required = False
         )
     }
 )
@@ -93,18 +99,33 @@ st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
 issue_cnt = len(new_df[new_df['Issue']==True])
+reviewed_cnt = len(new_df[new_df['Reviewed']==True])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+reviewed_perc = reviewed_cnt / total_cnt
+
+st.progress(reviewed_perc, text=f"Annotation Progress: {reviewed_perc*100:.0f}%")
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Number of Issues Identified", issue_cnt)
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Total Rows Reviewed", reviewed_cnt)
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
+
+if reviewed_perc == 1.0:
+    st.balloons()
+    st.success("Congratulations! You have finished all annotations. 🎉")
+
+    csv = new_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download Annotated Data as CSV",
+        data=csv,
+        file_name="annotated_data.csv",
+        mime="text/csv",
+    )
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
