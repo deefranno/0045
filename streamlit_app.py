@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="✨")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,24 +83,41 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter_raw = st.selectbox(
+        "Annotation Status",
+        options = new_df.Issue.unique(),
+        format_func=lambda x: "Annotated" if x else "Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_options = new_df[new_df["Issue"]==issue_filter_raw].Category.unique()
+    category_filter = st.selectbox("Choose a category", options = category_options)
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter_raw) & (new_df['Category'] == category_filter)]
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info("No records match the selected filters. 🧐")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
 issue_cnt = len(new_df[new_df['Issue']==True])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+issue_perc = f"{issue_cnt/total_cnt*100:.0f}%" if total_cnt > 0 else "0%"
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Annotated Responses", issue_cnt)
 with col2:
     st.metric("Annotation Progress", issue_perc)
+
+if issue_cnt == total_cnt and total_cnt > 0:
+    if "celebrated" not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+elif issue_cnt < total_cnt:
+    if "celebrated" in st.session_state:
+        del st.session_state.celebrated
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
