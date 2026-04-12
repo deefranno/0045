@@ -1,0 +1,3 @@
+## 2026-03-31 - [Refining Celebrations and Filtering UX]
+**Learning:** Initial celebrations (st.balloons) on app load can feel intrusive and lose their impact. Moving them to a terminal success state (100% progress) using `st.session_state` creates a much more rewarding experience. Also, semantic labels in filters (using `format_func`) and explicit empty states (using `st.info`) significantly reduce user confusion when dealing with dynamic data.
+**Action:** Always gate celebratory animations behind completion logic and use `st.session_state` to prevent re-firing. Provide helpful context when filters return no results.
