@@ -1,7 +1,10 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+if "balloons_shown" not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_shown = True
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -39,7 +42,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, use_container_width=True)
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -81,18 +84,28 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Status",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "Annotated" if x else "Pending",
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=new_df[new_df["Issue"] == issue_filter].Category.unique(),
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+st.dataframe(
+    new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)],
+    use_container_width=True,
+)
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df["Issue"]])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
