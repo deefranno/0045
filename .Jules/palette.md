@@ -1,0 +1,3 @@
+## 2025-04-15 - [Streamlit UX and API Modernization]
+**Learning:** Streamlit 1.56.0+ deprecates `use_container_width` in favor of `width="stretch"`. Additionally, gating "delight" elements like `st.balloons()` in `st.session_state` is essential for multi-rerun apps to prevent them from becoming intrusive. Using `format_func` with semantic icons (e.g., ⚠️, ✅) significantly improves the scannability of boolean filters.
+**Action:** Use `width="stretch"` for full-width dataframes/editors. Always gate terminal success animations in session state. Prefer semantic labels over raw booleans in UI filters.
