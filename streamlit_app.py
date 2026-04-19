@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation Pro", page_icon="📊", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -39,7 +40,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, width="stretch")
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -51,6 +52,7 @@ df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
+    width="stretch",
     column_config = {
         "Questions":st.column_config.TextColumn(
             width = "medium",
@@ -87,12 +89,16 @@ with col1:
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info("No responses match the selected filters.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -105,6 +111,10 @@ with col2:
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
+
+if issue_cnt == total_cnt and not st.session_state.get("celebrated", False):
+    st.balloons()
+    st.session_state.celebrated = True
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
