@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -39,7 +40,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, width="stretch")
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -49,29 +50,32 @@ st.write("Now I want to evaluate the responses from my model. "
 df["Issue"] = [True, True, True, False]
 df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
+# Centralize column configuration for consistency
+COLUMN_CONFIG = {
+    "Questions": st.column_config.TextColumn(
+        width="medium",
+        disabled=True
+    ),
+    "Answers": st.column_config.TextColumn(
+        width="medium",
+        disabled=True
+    ),
+    "Issue": st.column_config.CheckboxColumn(
+        "Mark as annotated?",
+        default=False
+    ),
+    "Category": st.column_config.SelectboxColumn(
+        "Issue Category",
+        help="Select the category",
+        options=['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
+        required=False
+    )
+}
+
 new_df = st.data_editor(
     df,
-    column_config = {
-        "Questions":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Answers":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
-            default = False
-        ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
-        )
-    }
+    width="stretch",
+    column_config=COLUMN_CONFIG
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -83,16 +87,30 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_options = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Filter by Category",
+        options=category_options,
+        format_func=lambda x: f"📁 {x}" if x else "🔘 Uncategorized"
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if filtered_df.empty:
+    st.info(f"No results found for {issue_filter} items in category '{category_filter}'.", icon="ℹ️")
+else:
+    st.dataframe(filtered_df, width="stretch", column_config=COLUMN_CONFIG)
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -105,6 +123,17 @@ with col2:
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
+
+# Celebration gate: trigger balloons only when everything is annotated
+if issue_cnt == total_cnt:
+    if 'celebrated' not in st.session_state:
+        st.balloons()
+        st.session_state['celebrated'] = True
+    st.success("All items have been annotated! Great job! 🎉", icon="✅")
+else:
+    # Reset celebration state if user unchecks something
+    if 'celebrated' in st.session_state:
+        del st.session_state['celebrated']
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
