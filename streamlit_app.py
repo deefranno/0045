@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎯")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -39,7 +39,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, use_container_width=True)
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -71,8 +71,17 @@ new_df = st.data_editor(
         options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
         required = False
         )
-    }
+    },
+    use_container_width=True
 )
+
+if new_df.Issue.all():
+    if not st.session_state.get('celebrated', False):
+        st.balloons()
+        st.session_state.celebrated = True
+    st.success("Great job! All responses have been annotated. 🎉")
+else:
+    st.session_state.celebrated = False
 
 st.write("You will notice that we changed our dataframe and added new data. "
          "Now it is time to visualize what we have annotated!")
@@ -87,12 +96,15 @@ with col1:
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+st.dataframe(
+    new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)],
+    use_container_width=True
+)
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
