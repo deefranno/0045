@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Default user: admin / admin123
-INSERT INTO `users` (`username`, `password`) VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+INSERT INTO `users` (`username`, `password`) VALUES ('admin', '$2y$10$LGQEnYRf8BOPOEcXoKYtbuWlZ8q9gYdRAuRN6Wje2s0xDBRpupXgK');
 
 -- ----------------------------
 -- Table structure for settings
