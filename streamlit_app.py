@@ -1,7 +1,12 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(layout="wide", page_title="Data Evaluation App")
+
+if 'celebrated' not in st.session_state:
+    st.balloons()
+    st.session_state.celebrated = True
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -39,7 +44,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, width="stretch")
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -71,7 +76,8 @@ new_df = st.data_editor(
         options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
         required = False
         )
-    }
+    },
+    width="stretch"
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -83,16 +89,27 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Issues or Non-issues",
+        options = [True, False],
+        format_func=lambda x: "✅ Annotated" if x else "⚠️ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    filtered_df_pre = new_df[new_df["Issue"] == issue_filter]
+    category_options = filtered_df_pre.Category.unique()
+    category_filter = st.selectbox("Choose a category", options = category_options)
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info("No data matches the current filters. Try selecting a different category or status.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -107,4 +124,3 @@ df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
-
