@@ -14,11 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
     }
 
     // Handle Logo Upload separately if provided
-    if (isset($_FILES['logo_file']) && $_FILES['logo_file']['error'] === UPLOAD_ERR_OK) {
-        $logo_path = upload_image($_FILES['logo_file']);
-        if ($logo_path) {
-            $stmt = $pdo->prepare("UPDATE settings SET value = ? WHERE `key` = 'logo_url'");
-            $stmt->execute([$logo_path]);
+    if (isset($_FILES['logo_file']) && $_FILES['logo_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+        if ($_FILES['logo_file']['error'] === UPLOAD_ERR_OK) {
+            $logo_path = upload_image($_FILES['logo_file'], '../uploads/');
+            if ($logo_path) {
+                $stmt = $pdo->prepare("UPDATE settings SET value = ? WHERE `key` = 'logo_url'");
+                $stmt->execute([$logo_path]);
+            } else {
+                $message .= " (Logo upload failed: invalid format)";
+            }
+        } else {
+            $message .= " (Logo upload error code: " . $_FILES['logo_file']['error'] . ")";
         }
     }
 
