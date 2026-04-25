@@ -1,7 +1,8 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -51,7 +52,8 @@ df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
-    column_config = {
+    width="stretch",
+    column_config={
         "Questions":st.column_config.TextColumn(
             width = "medium",
             disabled=True
@@ -81,26 +83,43 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending",
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_options = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Filter by Category",
+        options=category_options,
+        format_func=lambda x: "No Category" if x == "" else x,
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)]
+
+if filtered_df.empty:
+    st.info("No data matches the selected filters.")
+else:
+    st.dataframe(filtered_df, width="stretch")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df["Issue"]])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_val = issue_cnt / total_cnt if total_cnt > 0 else 0
+issue_perc = f"{progress_val * 100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+st.progress(progress_val, text=f"Annotation Progress: {issue_perc}")
+
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Number of responses", issue_cnt)
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Total responses", total_cnt)
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
