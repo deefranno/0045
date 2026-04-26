@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="📊", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,16 +84,26 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Annotation Status",
+        options=sorted(new_df.Issue.unique(), reverse=True),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_options = new_df[new_df["Issue"]==issue_filter].Category.unique()
+    category_filter = st.selectbox("Choose a category", options=category_options)
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, use_container_width=True)
+else:
+    st.info(f"No entries found for **{category_filter}** with selected status.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -108,3 +119,6 @@ st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+if 'balloons_shown' not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_shown = True
