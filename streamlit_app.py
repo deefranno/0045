@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="✨", layout="wide")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -47,31 +47,24 @@ st.write("Now I want to evaluate the responses from my model. "
          "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
 
 df["Issue"] = [True, True, True, False]
-df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
+df["Category"] = ["Accuracy", "Accuracy", "Completeness", ""]
+df["Annotated"] = [True, True, True, True]
 
 new_df = st.data_editor(
     df,
-    column_config = {
-        "Questions":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
+    width="stretch",
+    column_config={
+        "Questions": st.column_config.TextColumn(width="medium", disabled=True),
+        "Answers": st.column_config.TextColumn(width="medium", disabled=True),
+        "Issue": st.column_config.CheckboxColumn("Findings Found?", default=False),
+        "Category": st.column_config.SelectboxColumn(
+            "Issue Category",
+            help="select the category",
+            options=["Accuracy", "Relevance", "Coherence", "Bias", "Completeness"],
+            required=False,
         ),
-        "Answers":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
-            default = False
-        ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
-        )
-    }
+        "Annotated": st.column_config.CheckboxColumn("Mark as reviewed?", default=False),
+    },
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -81,30 +74,53 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    status_filter = st.selectbox(
+        "Review Status",
+        options=new_df.Annotated.unique(),
+        format_func=lambda x: "✅ Reviewed" if x else "⏳ Pending",
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    issue_filter = st.selectbox(
+        "Findings Found?",
+        options=new_df[new_df["Annotated"] == status_filter].Issue.unique(),
+        format_func=lambda x: "⚠️ Issues Found" if x else "✅ No Issues",
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[
+    (new_df["Annotated"] == status_filter) & (new_df["Issue"] == issue_filter)
+]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info("No data matches the selected filters.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+reviewed_cnt = len(new_df[new_df["Annotated"]])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_val = reviewed_cnt / total_cnt if total_cnt > 0 else 0
+progress_perc = f"{progress_val*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+st.progress(progress_val, text=f"Review Progress: {progress_perc}")
+
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Total Reviewed", reviewed_cnt)
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Completion", progress_perc)
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
-st.bar_chart(df_plot, x = 'Category', y = 'count')
+st.bar_chart(df_plot, x="Category", y="count")
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+if reviewed_cnt == total_cnt and total_cnt > 0:
+    if "balloons_shown" not in st.session_state:
+        st.balloons()
+        st.session_state.balloons_shown = True
+    st.success("Annotation Complete! 🎉")
