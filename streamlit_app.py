@@ -1,6 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
+st.set_page_config(page_title="Data Evaluation App", page_icon="✨", layout="wide")
+
 st.balloons()
 st.markdown("# Data Evaluation App")
 
@@ -39,7 +41,7 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.write(df)
+st.dataframe(df, width="stretch")
 
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
@@ -51,6 +53,7 @@ df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
+    width = "stretch",
     column_config = {
         "Questions":st.column_config.TextColumn(
             width = "medium",
@@ -83,16 +86,30 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Issues or Non-issues",
+        options = new_df.Issue.unique(),
+        format_func = lambda x: "⚠️ Issues Found" if x else "✅ No Issues"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    available_categories = new_df[new_df["Issue"]==issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options = available_categories,
+        disabled = len(available_categories) == 0
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if filtered_df.empty:
+    st.info("No records found for the selected filters. 🔍")
+else:
+    st.dataframe(filtered_df, width="stretch")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
