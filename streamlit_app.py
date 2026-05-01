@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨", layout="wide")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -51,27 +51,30 @@ df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
-    column_config = {
-        "Questions":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
+    width="stretch",
+    column_config={
+        "Questions": st.column_config.TextColumn(
+            width="medium",
+            disabled=True,
+            help="The question asked to the model",
         ),
-        "Answers":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
+        "Answers": st.column_config.TextColumn(
+            width="medium",
+            disabled=True,
+            help="The model's response",
         ),
-        "Issue":st.column_config.CheckboxColumn(
+        "Issue": st.column_config.CheckboxColumn(
             "Mark as annotated?",
-            default = False
+            default=False,
+            help="Check this if the response has been reviewed",
         ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
-        )
-    }
+        "Category": st.column_config.SelectboxColumn(
+            "Issue Category",
+            help="Select the category that best describes the issue",
+            options=["Accuracy", "Relevance", "Coherence", "Bias", "Completeness"],
+            required=False,
+        ),
+    },
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -81,30 +84,50 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Annotation Status",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending",
+        help="Select whether to show annotated or pending items",
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    available_categories = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=available_categories,
+        disabled=len(available_categories) == 0,
+        help="Filter items by their issue category",
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+df_filtered = new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)]
+
+if df_filtered.empty:
+    st.info("No data matches the selected filters. Please adjust your selection.")
+else:
+    st.dataframe(df_filtered, width="stretch")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df["Issue"].sum()
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Number of responses", issue_cnt)
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.progress(
+        issue_cnt / total_cnt, text=f"Annotation Progress: {issue_perc}"
+    )
 
-df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
+df_plot = new_df[new_df["Category"] != ""].Category.value_counts().reset_index()
 
-st.bar_chart(df_plot, x = 'Category', y = 'count')
+st.bar_chart(df_plot, x="Category", y="count")
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+if issue_cnt == total_cnt:
+    st.balloons()
