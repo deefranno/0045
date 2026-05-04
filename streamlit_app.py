@@ -1,6 +1,12 @@
 import streamlit as st 
 import pandas as pd
 
+st.set_page_config(
+    page_title="Data Evaluation App",
+    page_icon="📊",
+    layout="wide",
+)
+
 st.balloons()
 st.markdown("# Data Evaluation App")
 
@@ -83,24 +89,37 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "✅ Issues Found" if x else "🔘 No Issues",
+        help="Filter the data based on whether an issue was identified during annotation."
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_filter = st.selectbox(
+        "Filter by Category",
+        options=new_df[new_df["Issue"] == issue_filter].Category.unique(),
+        help="Filter the data by a specific issue category."
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+if filtered_df.empty:
+    st.info("No records match the current filters. Adjust your selection to view data.")
+else:
+    st.dataframe(filtered_df, use_container_width=True)
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Identified Issues", issue_cnt, help="Total number of responses marked with an issue.")
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Annotation Progress", issue_perc, help="Percentage of total responses that have been reviewed.")
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
