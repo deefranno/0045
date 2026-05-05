@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluator", page_icon="🎨")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,7 +83,11 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options = new_df.Issue.unique(),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
@@ -92,7 +96,7 @@ st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == c
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = int(new_df['Issue'].sum())
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -105,6 +109,14 @@ with col2:
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
+
+if issue_cnt == total_cnt > 0:
+    if 'celebrated' not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+    st.success("Great job! All responses have been annotated. 🎉")
+elif 'celebrated' in st.session_state:
+    del st.session_state.celebrated
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 

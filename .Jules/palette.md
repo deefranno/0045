@@ -1,0 +1,3 @@
+## 2026-05-05 - Completion Experience and Metric Clarity
+**Learning:** In data annotation apps, rewarding the user with celebratory animations only upon 100% completion (gated by session state) provides a much stronger sense of achievement than triggering them on load. Additionally, using semantic labels in filters (e.g., emojis for status) and descriptive tooltips for metrics reduces cognitive load and makes the interface self-documenting.
+**Action:** Always gate celebratory logic with session state to ensure it only fires once upon reaching a milestone, and prioritize semantic formatting in selectboxes for status-based filters.
