@@ -1,0 +1,3 @@
+## 2025-05-14 - [Streamlit Micro-UX: Gating Celebrations and Semantic Filters]
+**Learning:** In Streamlit apps, celebratory animations like `st.balloons()` can become intrusive if they fire on every script rerun. Additionally, displaying raw boolean values in filters is less intuitive than using human-readable, emoji-prefixed labels.
+**Action:** Use `st.session_state` to gate terminal success animations so they only trigger once per completion event, and implement reset logic if the progress threshold is lost. Use `format_func` in `st.selectbox` to provide semantic context (e.g., "✅ Annotated" vs "⏳ Pending").
