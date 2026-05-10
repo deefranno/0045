@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(layout="wide", page_title="Data Evaluation App", page_icon="✨")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -81,30 +82,60 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
-with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    issue_options = sorted(new_df.Issue.unique(), reverse=True)
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options=issue_options,
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending",
+        help="Filter the data by its annotation status."
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+with col2:
+    available_categories = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=available_categories,
+        disabled=len(available_categories) == 0,
+        help="Select a specific issue category to view."
+    )
+
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info("No data available for the selected filters.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = int(new_df['Issue'].sum())
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+if total_cnt > 0:
+    issue_perc = f"{issue_cnt / total_cnt * 100:.0f}%"
+else:
+    issue_perc = "0%"
+
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Number of responses", issue_cnt)
 with col2:
     st.metric("Annotation Progress", issue_perc)
 
-df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
+df_plot = new_df[new_df['Category'] != ''].Category.value_counts().reset_index()
 
-st.bar_chart(df_plot, x = 'Category', y = 'count')
+st.bar_chart(df_plot, x='Category', y='count')
+
+if total_cnt > 0 and issue_cnt == total_cnt:
+    if not st.session_state.get("celebrated", False):
+        st.balloons()
+        st.session_state["celebrated"] = True
+    st.success("All responses have been annotated! 🎉")
+else:
+    st.session_state["celebrated"] = False
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 

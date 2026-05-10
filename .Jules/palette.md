@@ -1,0 +1,3 @@
+## 2025-05-15 - Gated Celebration and Semantic Filters in Streamlit
+**Learning:** Using `st.balloons()` at the start of a script causes it to re-fire on every interaction (widget change, scroll, etc.), which becomes distracting. Gating it behind a completion threshold (e.g., 100% progress) and using `st.session_state` to ensure it only fires once per session significantly improves the "delight" factor without being intrusive. Additionally, using `format_func` in selectboxes to map booleans to semantic, emoji-prefixed labels (e.g., "✅ Annotated" vs "⏳ Pending") improves accessibility and scanability.
+**Action:** Always gate terminal animations with session state and prefer semantic labels over raw boolean values in UI filters.
