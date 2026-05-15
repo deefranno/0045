@@ -1,7 +1,7 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="📊")
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,24 +83,42 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Issues or Non-issues",
+        options = sorted(new_df.Issue.unique(), reverse=True),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    available_categories = new_df[new_df["Issue"]==issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options = available_categories,
+        disabled=len(available_categories) == 0
+    )
 
 st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df['Issue'].sum()
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_value = issue_cnt / total_cnt if total_cnt > 0 else 0
+issue_perc = f"{progress_value*100:.0f}%"
+
+st.progress(progress_value, text=f"Annotation Progress: {issue_perc}")
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Number of responses", issue_cnt, help="Total number of items marked as annotated.")
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Annotation Progress", issue_perc, help="Percentage of total items that have been annotated.")
+
+if progress_value == 1.0 and "balloons_fired" not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_fired = True
+elif progress_value < 1.0 and "balloons_fired" in st.session_state:
+    del st.session_state.balloons_fired
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
