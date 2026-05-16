@@ -1,7 +1,12 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(
+    page_title="Data Evaluation App",
+    page_icon="🎨",
+    layout="wide"
+)
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,16 +88,35 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Annotation Status",
+        options=sorted(new_df.Issue.unique(), reverse=True),
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    # Filter categories based on status and exclude empty strings
+    available_categories = [c for c in new_df[new_df["Issue"]==issue_filter].Category.unique() if c != ""]
+    category_filter = st.selectbox(
+        "Issue Category",
+        options=available_categories if available_categories else ["None"],
+        disabled=len(available_categories) == 0,
+        help="Filter by the specific category of issue"
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter)]
+if category_filter and category_filter != "None":
+    filtered_df = filtered_df[filtered_df['Category'] == category_filter]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, width="stretch")
+else:
+    st.info(f"No responses found with status '{'Annotated' if issue_filter else 'Pending'}'" +
+            (f" and category '{category_filter}'" if category_filter and category_filter != "None" else ""), icon="🔍")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df.Issue.sum()
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
@@ -108,3 +132,9 @@ st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+# 🎨 Palette: Celebrate completion!
+if issue_cnt == total_cnt > 0 and 'balloons_fired' not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_fired = True
+elif issue_cnt < total_cnt and 'balloons_fired' in st.session_state:
+    del st.session_state.balloons_fired
