@@ -1,7 +1,8 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluator", page_icon="🎨", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -14,13 +15,13 @@ st.write("Imagine you are evaluating different models for a Q&A bot "
          "Here is a sample question and response set.")
 
 data = {
-    "Questions": 
-        ["Who invented the internet?"
-        , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
-        "and how it is used in everyday applications?"
-        , "How do penguins fly?"
-    ],           
+    "Questions": [
+        "Who invented the internet?",
+        "What causes the Northern Lights?",
+        "Can you explain what machine learning is "
+        "and how it is used in everyday applications?",
+        "How do penguins fly?",
+    ],
     "Answers": 
         ["The internet was invented in the late 1800s"
         "by Sir Archibald Internet, an English inventor and tea enthusiast",
@@ -47,7 +48,7 @@ st.write("Now I want to evaluate the responses from my model. "
          "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
 
 df["Issue"] = [True, True, True, False]
-df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
+df["Category"] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
@@ -85,22 +86,48 @@ col1, col2 = st.columns([1,1])
 with col1:
     issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    available_categories = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=available_categories if len(available_categories) > 0 else ["None"],
+        disabled=len(available_categories) == 0,
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+if len(available_categories) > 0:
+    st.dataframe(
+        new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)],
+        width="stretch",
+    )
+else:
+    st.info(f"No categories available for Issue Status: {issue_filter}", icon="ℹ️")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df["Issue"].sum()
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+issue_perc = issue_cnt / total_cnt if total_cnt > 0 else 0
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric(
+        "Annotated Responses",
+        issue_cnt,
+        help="The number of responses that have been marked as annotated.",
+    )
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric(
+        "Annotation Progress",
+        f"{issue_perc:.0%}",
+        help="The percentage of the total dataset that has been annotated.",
+    )
+
+st.progress(issue_perc, text=f"Annotation Progress: {issue_perc:.0%}")
+
+if issue_perc == 1.0 and "celebrated" not in st.session_state:
+    st.balloons()
+    st.success("All responses have been annotated! 🎉", icon="✅")
+    st.session_state.celebrated = True
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
