@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -17,7 +18,7 @@ data = {
     "Questions": 
         ["Who invented the internet?"
         , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
+        , "Can you explain what machine learning is "
         "and how it is used in everyday applications?"
         , "How do penguins fly?"
     ],           
@@ -92,15 +93,22 @@ st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == c
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df['Issue'].sum()
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_value = issue_cnt / total_cnt if total_cnt > 0 else 0.0
+issue_perc = f"{progress_value*100:.0f}%"
 
 col1, col2 = st.columns([1,1])
 with col1:
     st.metric("Number of responses",issue_cnt)
 with col2:
     st.metric("Annotation Progress", issue_perc)
+
+st.progress(progress_value, text=f"Overall Annotation Progress: {issue_perc}")
+
+if progress_value == 1.0 and "balloons_fired" not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_fired = True
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
