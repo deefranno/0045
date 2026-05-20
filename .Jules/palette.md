@@ -1,0 +1,3 @@
+## 2025-05-22 - [Streamlit Filter Clarity and Feedback]
+**Learning:** In interactive data apps, raw boolean filters (True/False) lack semantic meaning and can confuse users. Providing descriptive, emoji-prefixed labels and contextual help tooltips significantly reduces cognitive load. Additionally, an empty state with an informative message is superior to showing an empty table, as it provides a clear next step for the user.
+**Action:** Always use `format_func` in Streamlit selectboxes to provide human-readable labels for data-driven options, and implement conditional info messages for empty filtered states.
