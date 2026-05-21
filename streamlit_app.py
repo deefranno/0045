@@ -1,7 +1,8 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -14,13 +15,13 @@ st.write("Imagine you are evaluating different models for a Q&A bot "
          "Here is a sample question and response set.")
 
 data = {
-    "Questions": 
+    "Questions":
         ["Who invented the internet?"
         , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
+        , "Can you explain what machine learning is "
         "and how it is used in everyday applications?"
         , "How do penguins fly?"
-    ],           
+    ],
     "Answers": 
         ["The internet was invented in the late 1800s"
         "by Sir Archibald Internet, an English inventor and tea enthusiast",
@@ -50,26 +51,14 @@ df["Issue"] = [True, True, True, False]
 df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
-    df,
-    column_config = {
-        "Questions":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Answers":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
-            default = False
-        ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
+    df, key="data_editor",
+    column_config={
+        "Questions": st.column_config.TextColumn(width="medium", disabled=True),
+        "Answers": st.column_config.TextColumn(width="medium", disabled=True),
+        "Issue": st.column_config.CheckboxColumn("Mark as annotated?", default=False),
+        "Category": st.column_config.SelectboxColumn(
+            "Issue Category", help="Select the category", required=False,
+            options=['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness']
         )
     }
 )
@@ -81,26 +70,44 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns(2)
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Filter by Status", options=[True, False],
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending",
+        help="Choose whether to see annotated or pending responses."
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_filter = st.selectbox(
+        "Filter by Category", options=new_df[new_df["Issue"] == issue_filter].Category.unique(),
+        help="Filter responses by their assigned issue category."
+    )
 
 st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+issue_perc_val = issue_cnt / total_cnt
+issue_perc = f"{issue_perc_val*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+# Celebration logic: show balloons when all responses are annotated
+if issue_perc_val == 1.0:
+    if "celebrated" not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+else:
+    # Reset celebration state if user unchecks an item
+    if "celebrated" in st.session_state:
+        del st.session_state.celebrated
+
+col1, col2 = st.columns(2)
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Annotated Responses", issue_cnt, help="Total 'Annotated' responses.")
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Annotation Progress", issue_perc, help="Progress toward 100%.")
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
