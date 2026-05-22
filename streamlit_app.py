@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation Dashboard", page_icon="📊")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -81,26 +82,43 @@ st.divider()
 
 st.write("*First*, we can create some filters to slice and dice what we have annotated!")
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox("Issues or Non-issues", options=new_df.Issue.unique())
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    categories = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=categories if len(categories) > 0 else ["No categories found"],
+        disabled=len(categories) == 0
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+if len(categories) > 0:
+    st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+else:
+    st.info("No data matches the selected filter.", icon="ℹ️")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = int(new_df['Issue'].sum())
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+issue_perc = f"{(issue_cnt/total_cnt*100) if total_cnt > 0 else 0:.0f}%"
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Annotated Responses", issue_cnt)
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric("Total Progress", issue_perc)
+
+if total_cnt > 0 and issue_cnt == total_cnt:
+    if "celebrated" not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+    st.success("All responses annotated! 🎉")
+else:
+    if "celebrated" in st.session_state:
+        del st.session_state.celebrated
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
