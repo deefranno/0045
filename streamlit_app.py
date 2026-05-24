@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨", layout="wide")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -83,24 +84,35 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Annotation Status",
+        options = sorted(new_df.Issue.unique(), reverse = True),
+        format_func = lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+if not filtered_df.empty:
+    st.dataframe(filtered_df)
+else:
+    st.info("No responses match the selected filters.")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+issue_perc = f"{issue_cnt/total_cnt*100:.0f}%" if total_cnt > 0 else "0%"
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric("Annotated Responses", issue_cnt)
 with col2:
     st.metric("Annotation Progress", issue_perc)
+
+if total_cnt > 0:
+    st.progress(issue_cnt / total_cnt, text=f"Overall Annotation Progress: {issue_perc}")
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
@@ -108,3 +120,14 @@ st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+# --- Celebratory Effect ---
+if total_cnt > 0:
+    progress_ratio = issue_cnt / total_cnt
+    if progress_ratio == 1.0:
+        if "celebrated" not in st.session_state:
+            st.balloons()
+            st.success("All responses annotated! 🎉")
+            st.session_state.celebrated = True
+    elif "celebrated" in st.session_state:
+        # Reset if they uncheck something
+        del st.session_state.celebrated
