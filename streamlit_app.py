@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(layout="wide", page_title="Data Evaluation App", page_icon="🎨")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -17,20 +18,20 @@ data = {
     "Questions": 
         ["Who invented the internet?"
         , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
+        , "Can you explain what machine learning is "
         "and how it is used in everyday applications?"
         , "How do penguins fly?"
     ],           
     "Answers": 
-        ["The internet was invented in the late 1800s"
+        ["The internet was invented in the late 1800s "
         "by Sir Archibald Internet, an English inventor and tea enthusiast",
         "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting" 
+        ", are caused by the Earth's magnetic field interacting "
         "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
+        "Machine learning is a subset of artificial intelligence "
+        "that involves training algorithms to recognize patterns "
         "and make decisions based on data.",
-        " Penguins are unique among birds because they can fly underwater. "
+        "Penguins are unique among birds because they can fly underwater. "
         "Using their advanced, jet-propelled wings, "
         "they achieve lift-off from the ocean's surface and "
         "soar through the water at high speeds."
@@ -46,8 +47,8 @@ st.write("Now I want to evaluate the responses from my model. "
          "You will now notice our dataframe is in the editing mode and try to "
          "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
 
-df["Issue"] = [True, True, True, False]
-df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
+df["Issue"] = [False, False, False, False]
+df['Category'] = ["Accuracy", "Accuracy", "Completeness", "Accuracy"]
 
 new_df = st.data_editor(
     df,
@@ -71,7 +72,8 @@ new_df = st.data_editor(
         options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
         required = False
         )
-    }
+    },
+    key="data_editor"
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -87,14 +89,15 @@ with col1:
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)], width='stretch')
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df['Issue'].sum()
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_value = issue_cnt / total_cnt
+issue_perc = f"{progress_value*100:.0f}%"
 
 col1, col2 = st.columns([1,1])
 with col1:
@@ -102,9 +105,19 @@ with col1:
 with col2:
     st.metric("Annotation Progress", issue_perc)
 
+st.progress(progress_value, text=f"Annotation Progress: {issue_perc}")
+
+if progress_value == 1.0:
+    if "celebrated" not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+    st.success("All responses have been annotated! 🎉")
+else:
+    if "celebrated" in st.session_state:
+        del st.session_state.celebrated
+
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
-
