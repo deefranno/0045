@@ -1,0 +1,3 @@
+## 2025-05-21 - [Streamlit Feedback & Robustness]
+**Learning:** For task-oriented apps, gating celebratory effects like 'st.balloons()' behind a completion milestone (100% progress) provides a clear reward signal instead of being a distraction on initial load. Additionally, dependent selectboxes should handle empty filtered states by disabling the input and providing an informative message to prevent application crashes and user confusion.
+**Action:** Always gate 'st.balloons()' with a progress check and implement safety checks (e.g., 'options' fallbacks and 'disabled' state) for dependent selectboxes.
