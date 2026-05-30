@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="🎨")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -17,18 +18,18 @@ data = {
     "Questions": 
         ["Who invented the internet?"
         , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
+        , "Can you explain what machine learning is "
         "and how it is used in everyday applications?"
         , "How do penguins fly?"
     ],           
     "Answers": 
-        ["The internet was invented in the late 1800s"
+        ["The internet was invented in the late 1800s "
         "by Sir Archibald Internet, an English inventor and tea enthusiast",
         "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting" 
+        ", are caused by the Earth's magnetic field interacting "
         "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
+        "Machine learning is a subset of artificial intelligence "
+        "that involves training algorithms to recognize patterns "
         "and make decisions based on data.",
         " Penguins are unique among birds because they can fly underwater. "
         "Using their advanced, jet-propelled wings, "
@@ -85,22 +86,41 @@ col1, col2 = st.columns([1,1])
 with col1:
     issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    available_categories = new_df[new_df["Issue"] == issue_filter].Category.unique()
+    category_filter = st.selectbox(
+        "Choose a category",
+        options=available_categories if len(available_categories) > 0 else ["None"],
+        disabled=len(available_categories) == 0
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+if len(available_categories) > 0:
+    st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+else:
+    st.info("No data matches the selected filters.", icon="ℹ️")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = new_df['Issue'].sum()
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_val = issue_cnt / total_cnt if total_cnt > 0 else 0
+issue_perc = f"{progress_val*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric(
+        "Annotated Responses",
+        issue_cnt,
+        help="The total number of responses marked as annotated."
+    )
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric(
+        "Annotation Progress",
+        issue_perc,
+        help="The percentage of the dataset that has been successfully annotated."
+    )
+
+st.progress(progress_val, text=f"Overall Annotation Progress: {issue_perc}")
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
@@ -108,3 +128,6 @@ st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
 
+if progress_val == 1.0:
+    st.balloons()
+    st.success("Congratulations! You have completed all annotations. 🎉")
