@@ -1,0 +1,3 @@
+## 2025-05-22 - [Streamlit Progressive Disclosure and Completion Feedback]
+**Learning:** For task-oriented Streamlit apps, gating celebratory effects like 'st.balloons()' behind a 100% completion milestone provides a much stronger reward signal than firing on initial load. Additionally, 'st.selectbox' components require explicit safety checks for empty option lists to prevent application crashes, which can be elegantly handled by providing a fallback and disabling the widget.
+**Action:** Always gate terminal animations behind completion logic and implement zero-count fallbacks for dependent selectboxes to ensure application stability and better UX flow.
