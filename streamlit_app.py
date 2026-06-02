@@ -1,7 +1,8 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+st.set_page_config(page_title="Data Evaluation App", page_icon="📊")
+
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -17,18 +18,18 @@ data = {
     "Questions": 
         ["Who invented the internet?"
         , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
+        , "Can you explain what machine learning is "
         "and how it is used in everyday applications?"
         , "How do penguins fly?"
     ],           
     "Answers": 
-        ["The internet was invented in the late 1800s"
+        ["The internet was invented in the late 1800s "
         "by Sir Archibald Internet, an English inventor and tea enthusiast",
-        "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting" 
+        "The Northern Lights, or Aurora Borealis, "
+        "are caused by the Earth's magnetic field interacting "
         "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
+        "Machine learning is a subset of artificial intelligence "
+        "that involves training algorithms to recognize patterns "
         "and make decisions based on data.",
         " Penguins are unique among birds because they can fly underwater. "
         "Using their advanced, jet-propelled wings, "
@@ -71,7 +72,8 @@ new_df = st.data_editor(
         options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
         required = False
         )
-    }
+    },
+    key="annotation_editor"
 )
 
 st.write("You will notice that we changed our dataframe and added new data. "
@@ -83,28 +85,61 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_options = sorted(new_df.Issue.unique(), reverse=True)
+    issue_filter = st.selectbox(
+        "Filter by Status",
+        options=issue_options,
+        format_func=lambda x: "✅ Annotated" if x else "⏳ Pending"
+    )
 with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
+    category_options = sorted(new_df[new_df["Issue"] == issue_filter].Category.unique())
+    category_filter = st.selectbox(
+        "Filter by Category",
+        options=category_options,
+        disabled=len(category_options) == 0
+    )
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+filtered_df = new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)]
+
+if not filtered_df.empty:
+    st.dataframe(filtered_df, use_container_width=True)
+else:
+    st.info("No data matches the selected filters.", icon="ℹ️")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = int(new_df['Issue'].sum())
 total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+progress_value = issue_cnt / total_cnt if total_cnt > 0 else 0
+issue_perc = f"{progress_value*100:.0f}%"
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric(
+        "Annotated Responses",
+        issue_cnt,
+        help="Total number of items marked as annotated."
+    )
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric(
+        "Progress",
+        issue_perc,
+        help="Percentage of the total dataset that has been annotated."
+    )
+
+st.progress(progress_value, text=f"Completion: {issue_perc}")
+
+if progress_value == 1.0:
+    if 'celebrated' not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+    st.success("All items annotated! Great job! 🎉")
+elif 'celebrated' in st.session_state:
+    del st.session_state.celebrated
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
 st.bar_chart(df_plot, x = 'Category', y = 'count')
 
 st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
-
