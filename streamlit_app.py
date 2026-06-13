@@ -1,7 +1,6 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
@@ -51,6 +50,8 @@ df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
 
 new_df = st.data_editor(
     df,
+    key="annotation_editor",
+    width="stretch",
     column_config = {
         "Questions":st.column_config.TextColumn(
             width = "medium",
@@ -87,20 +88,37 @@ with col1:
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
+st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)], width="stretch")
 
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
 col1, col2 = st.columns([1,1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric(
+        "Annotated Responses",
+        issue_cnt,
+        help="Total number of responses marked as annotated."
+    )
 with col2:
-    st.metric("Annotation Progress", issue_perc)
+    st.metric(
+        "Completion Rate",
+        issue_perc,
+        help="The percentage of the dataset that has been successfully annotated."
+    )
+
+st.progress(issue_cnt / total_cnt)
+
+if issue_cnt == total_cnt:
+    if "celebrated" not in st.session_state:
+        st.balloons()
+        st.session_state.celebrated = True
+elif "celebrated" in st.session_state:
+    del st.session_state.celebrated
 
 df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
 
