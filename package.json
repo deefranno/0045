@@ -1,0 +1,10 @@
+{
+  "name": "quickinvoice-caribbean",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd client && npm install && npm run build",
+    "start": "node server/index.js",
+    "dev:server": "cd server && nodemon index.js",
+    "dev:client": "cd client && npm run dev"
+  }
+}

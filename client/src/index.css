@@ -1,0 +1,126 @@
+:root {
+  --brand: #1D9E75;
+  --brand-dark: #0F6E56;
+  --brand-light: #E8F7F2;
+  --brand-mid: #5DCAA5;
+  --page-bg: #F7F9F8;
+  --card-bg: #FFFFFF;
+  --text-primary: #0D1F1A;
+  --text-secondary: #6B7F7A;
+  --text-hint: #A8B8B4;
+  --danger: #D84040;
+  --danger-light: #FEF0F0;
+  --warning: #C47C1A;
+  --warning-light: #FEF3E2;
+  --border: #E4EDEA;
+  --shadow: 0 2px 12px rgba(13,31,26,0.06);
+  --font: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  background: var(--page-bg);
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+}
+
+#root {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  background: var(--page-bg);
+  position: relative;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.input {
+  background: #F2F7F5;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  font-family: var(--font);
+  width: 100%;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--brand);
+  background: #fff;
+}
+
+.btn-primary {
+  background: var(--brand);
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(29,158,117,0.25);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 15px;
+  color: var(--text-primary);
+  width: 100%;
+  cursor: pointer;
+}
+
+.badge {
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-paid { background: #E8F7F2; color: #0F6E56; }
+.badge-pending { background: #FEF3E2; color: #9A5C0A; }
+.badge-overdue { background: #FEF0F0; color: #A32D2D; }
+.badge-draft { background: #F2F7F5; color: #6B7F7A; }
+
+.hero-card {
+  background: linear-gradient(135deg, #0F6E56, #1D9E75);
+  border-radius: 20px;
+  padding: 20px;
+  color: white;
+}
+
+@media print {
+  .bottom-nav, .top-bar, .action-buttons, .announcement-banner {
+    display: none !important;
+  }
+  .invoice-print-area {
+    display: block;
+    width: 100%;
+  }
+}
