@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Streamlit
+.streamlit/
+streamlit.log
+
+# Environment
+.venv/
+env/
+venv/
+requirements_installed.txt
+
+# OS
+.DS_Store
