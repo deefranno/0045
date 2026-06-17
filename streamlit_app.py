@@ -1,7 +1,9 @@
 import streamlit as st 
 import pandas as pd
 
-st.balloons()
+if "balloons_shown" not in st.session_state:
+    st.balloons()
+    st.session_state.balloons_shown = True
 st.markdown("# Data Evaluation App")
 
 st.write("We are so glad to see you here. ✨ " 
