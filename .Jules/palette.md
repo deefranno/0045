@@ -1,0 +1,3 @@
+## 2025-05-15 - [Streamlit Micro-UX Polish]
+**Learning:** In Streamlit applications, visual effects like `st.balloons()` should be guarded by `st.session_state` to prevent repetitive firing on every interaction, which can lead to "balloon fatigue". Additionally, `st.selectbox` for boolean filters is much more accessible when raw values are mapped to descriptive labels (e.g., "Has Issues" vs "True") using the `format_func` parameter, ensuring the labels accurately reflect the semantic meaning of the data.
+**Action:** Always wrap one-time animations in session state checks and use `format_func` in selectboxes to provide clear, semantic labels instead of raw boolean values.
