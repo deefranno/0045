@@ -1,0 +1,3 @@
+## 2026-06-22 - Streamlit Interaction & Clarity Improvements
+**Learning:** In Streamlit, top-level visual effects like `st.balloons()` rerun on every user interaction, leading to "visual fatigue." Wrapping them in `st.session_state` ensures they only fire once. Additionally, when using boolean columns in filters, `format_func` in `st.selectbox` is essential for providing semantic, user-friendly labels that match the UI's intent (e.g., "Annotated" vs `True`).
+**Action:** Always check if visual effects or one-time notifications should be gated by session state. Use `format_func` to map raw data values to descriptive labels in all selection widgets.
