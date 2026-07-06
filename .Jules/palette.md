@@ -1,0 +1,3 @@
+## 2026-07-06 - Enhancing Metric Context and Boolean Filtering
+**Learning:** In Streamlit, raw boolean values in filters (True/False) are often less intuitive for non-technical users than descriptive labels. Using `format_func` in `st.selectbox` allows for a much cleaner UX without changing the underlying data structure. Similarly, `st.metric` tooltips provide essential context for metrics that might otherwise be ambiguous.
+**Action:** Always use `format_func` for boolean or categorical filters to provide semantic labels, and proactively add `help` parameters to metrics to define their meaning and scope.
