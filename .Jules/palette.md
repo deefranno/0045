@@ -1,0 +1,3 @@
+## 2025-05-15 - Improving semantic clarity in Streamlit metrics and filters
+**Learning:** When using Streamlit's `st.metric` and `st.selectbox` for data dashboards, the raw column names or values (like booleans) often lack the semantic clarity needed for a quick glance. Renaming metrics to accurately reflect their data (e.g., "Responses with Issues" instead of "Number of responses") and using `format_func` to provide human-readable labels for boolean filters ("Has Issues" vs "True") significantly lowers the cognitive load for users.
+**Action:** Always use `format_func` for mapping internal state to UI labels in selectboxes and ensure metric labels are descriptive and specific to the value being displayed.
