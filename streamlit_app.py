@@ -44,7 +44,7 @@ st.write(df)
 st.write("Now I want to evaluate the responses from my model. "
          "One way to achieve this is to use the very powerful `st.data_editor` feature. "
          "You will now notice our dataframe is in the editing mode and try to "
-         "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
+         "select some values in the `Issue Category` and check `Has Issue?` once finished 👇")
 
 df["Issue"] = [True, True, True, False]
 df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
@@ -61,7 +61,8 @@ new_df = st.data_editor(
             disabled=True
         ),
         "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
+            "Has Issue?",
+            help="Indicate if the response has any quality issues",
             default = False
         ),
         "Category":st.column_config.SelectboxColumn
@@ -83,7 +84,12 @@ st.write("*First*, we can create some filters to slice and dice what we have ann
 
 col1, col2 = st.columns([1,1])
 with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
+    issue_filter = st.selectbox(
+        "Issues or Non-issues",
+        options=new_df.Issue.unique(),
+        format_func=lambda x: "Has Issues" if x else "No Issues",
+        help="Filter responses based on whether they have issues",
+    )
 with col2:
     category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
 
@@ -92,13 +98,17 @@ st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == c
 st.markdown("")
 st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
 
-issue_cnt = len(new_df[new_df['Issue']==True])
+issue_cnt = len(new_df[new_df['Issue']])
 total_cnt = len(new_df)
 issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
 
-col1, col2 = st.columns([1,1])
+col1, col2 = st.columns([1, 1])
 with col1:
-    st.metric("Number of responses",issue_cnt)
+    st.metric(
+        "Responses with Issues",
+        issue_cnt,
+        help="Total count of responses marked as having issues",
+    )
 with col2:
     st.metric("Annotation Progress", issue_perc)
 
